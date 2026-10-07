@@ -9,6 +9,12 @@ breaking changes, which are always listed).
 
 ## [Unreleased]
 
+### Changed
+- Per-user limit for status and credential lookups is now configurable
+  (`PSONO_CONNECTOR_RESOLVE_PER_MINUTE`, 30–10000) and defaults to **300** per
+  minute instead of a fixed 120, so pages with dozens of credential cards load
+  without hitting it.
+
 ## [0.1.0] — 2026-10-07 — first public pre-release
 
 ### Added

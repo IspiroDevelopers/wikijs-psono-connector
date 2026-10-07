@@ -74,6 +74,7 @@ async function main(): Promise<void> {
     loadMode: config.loadMode,
     passwordVisibleSeconds: config.passwordVisibleSeconds,
     deviceTtlMs: config.deviceTtlMs,
+    resolvePerMinute: config.resolvePerMinute,
     secureCookies: config.secureCookies,
     psonoWeb: config.psonoWeb,
     identity,

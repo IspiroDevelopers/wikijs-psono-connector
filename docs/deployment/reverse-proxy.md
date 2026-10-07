@@ -55,6 +55,18 @@ Then run the [checks](#verify) at the end.
 5. **The sidecar is not a public service.** Only the proxy should be able to
    reach its port.
 
+6. **Volumetric limits belong here.** The sidecar limits requests *per signed-in
+   user* (see `PSONO_CONNECTOR_RESOLVE_PER_MINUTE`), but flooding with anonymous
+   requests is best stopped by the proxy. Optional nginx example (unverified —
+   keep `burst` above the number of credentials on your largest page):
+
+   ```nginx
+   # http { } context
+   limit_req_zone $binary_remote_addr zone=psono_connector:10m rate=30r/s;
+   # inside the `location ^~ /psono-connector/` block
+   limit_req zone=psono_connector burst=100 nodelay;
+   ```
+
 Matching sidecar settings (see `docs/configuration.md`):
 
 ```env

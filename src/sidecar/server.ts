@@ -31,6 +31,8 @@ export interface ServerOptions {
   logLevel: string
   loadMode: 'visible' | 'click'
   passwordVisibleSeconds: number
+  /** Per-user requests per minute for status and credential lookups. */
+  resolvePerMinute: number
   /** Lifetime of a browser enrollment (device-bound key, ADR-0008). */
   deviceTtlMs: number
   /** Add `Secure` to the device cookie (public URL is https). */
@@ -55,13 +57,21 @@ declare module 'fastify' {
   }
 }
 
-const LIMITS = {
-  status: { max: 120, windowMs: 60_000 },
-  resolve: { max: 120, windowMs: 60_000 },
-  otp: { max: 90, windowMs: 60_000 },
-  reveal: { max: 30, windowMs: 60_000 },
-  credentials: { max: 10, windowMs: 60_000 },
-} satisfies Record<string, Limit>
+/**
+ * Per-user limits per minute. `status` and `resolve` follow the configurable value:
+ * a page with dozens of credentials makes one lookup per card. The others match
+ * human actions (a click on Show, saving a key) or one refresh per period and
+ * stay fixed.
+ */
+function limitsFor(resolvePerMinute: number) {
+  return {
+    status: { max: resolvePerMinute, windowMs: 60_000 },
+    resolve: { max: resolvePerMinute, windowMs: 60_000 },
+    otp: { max: 90, windowMs: 60_000 },
+    reveal: { max: 30, windowMs: 60_000 },
+    credentials: { max: 10, windowMs: 60_000 },
+  } satisfies Record<string, Limit>
+}
 
 /**
  * Failed authentications per client IP. Each unknown token costs one GraphQL
@@ -104,6 +114,7 @@ const SETTINGS_CSP = [
 
 export async function buildServer(options: ServerOptions): Promise<FastifyInstance> {
   const limiter = options.rateLimiter ?? new RateLimiter()
+  const LIMITS = limitsFor(options.resolvePerMinute)
   const app = Fastify({
     bodyLimit: 16 * 1024,
     // Fastify strips unknown properties by default; reject them instead.
