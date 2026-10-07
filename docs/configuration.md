@@ -58,7 +58,7 @@ Accepted values, separated by commas or spaces:
 | Value | Trusts |
 |---|---|
 | `10.0.0.10` | exactly that proxy (recommended in production) |
-| `10.0.0.0/24`, `fd00::/8` | a CIDR range |
+| `192.168.1.0/24`, `10.0.0.0/24`, `fd00::/8` | a CIDR range, e.g. your whole LAN |
 | `uniquelocal` | any private-network address (10/8, 172.16/12, 192.168/16, fc00::/7) — the easy choice when the proxy is a container on the same Docker host |
 | `loopback` | 127.0.0.1 / ::1 — proxy on the same host using host networking |
 | `linklocal` | 169.254/16, fe80::/10 |
@@ -71,6 +71,11 @@ exact line to add, e.g.
 Requests arrive through a reverse proxy at 10.0.0.10 that is not trusted ...
 Set PSONO_CONNECTOR_TRUSTED_PROXIES=10.0.0.10 (or "uniquelocal" to trust any private-network proxy).
 ```
+
+Trusting a whole network (`192.168.1.0/24`) is convenient but means **any host in
+that range** can claim to be a proxy and forge `X-Forwarded-For`. That only affects
+log addresses and the per-IP limit on failed logins — never who a user is — so it is
+acceptable on a network you control; prefer the single proxy address when you can.
 
 Typos fail at startup with a message naming the bad entry. The active value is
 printed in the `started` log line.
