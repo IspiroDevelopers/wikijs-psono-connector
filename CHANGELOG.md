@@ -9,11 +9,27 @@ breaking changes, which are always listed).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-10-07
+
+Drop-in upgrade from 0.1.0: no database migration, no configuration change
+required. The Wiki.js module is functionally unchanged (copying it again is
+optional).
+
 ### Changed
 - Per-user limit for status and credential lookups is now configurable
   (`PSONO_CONNECTOR_RESOLVE_PER_MINUTE`, 30–10000) and defaults to **300** per
   minute instead of a fixed 120, so pages with dozens of credential cards load
   without hitting it.
+- The browser bundle and the settings page are read once at start and served from
+  memory; the sidecar now fails at start (instead of at the first page view) if
+  its build output is missing.
+
+### Security
+- Addressed the first CodeQL findings: no file system access per unauthenticated
+  request any more, and a fragile path construction in a test script.
+- Development dependencies updated (`jsdom` 30, `dompurify` 3.4.16); the
+  production dependency tree has no known vulnerabilities. GitHub Actions
+  updated to current SHA-pinned releases; CI now also dry-runs the image build.
 
 ## [0.1.0] — 2026-10-07 — first public pre-release
 

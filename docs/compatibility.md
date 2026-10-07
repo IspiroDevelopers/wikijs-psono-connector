@@ -65,7 +65,7 @@ mobile testing**.
 
 ## Automated test suite (as of this version)
 
-256 tests: unit (URL matcher incl. bypass attempts, TOTP against RFC 6238 vectors,
+262 tests: unit (URL matcher incl. bypass attempts, TOTP against RFC 6238 vectors,
 cipher/store, Psono client, server pinning, config, doctor), integration (renderer
 and sanitizer pipeline, the sidecar HTTP API with real crypto, the browser bundle
 in jsdom) and 8 live tests against a real throwaway Psono 7.4.5. CI additionally
