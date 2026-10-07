@@ -456,6 +456,19 @@ describe('reverse proxy diagnostics', () => {
     expect(line).toContain('PSONO_CONNECTOR_TRUSTED_PROXIES=10.0.0.10')
   })
 
+  it.each([
+    ['a /24 LAN range', ['192.168.1.0/24'], '192.168.1.10', true],
+    ['a LAN range given among several entries', ['10.9.0.1', '192.168.1.0/24'], '192.168.1.200', true],
+    ['the uniquelocal preset', ['uniquelocal'], '192.168.77.5', true],
+    ['an address outside the range', ['192.168.1.0/24'], '192.168.2.10', false],
+  ])('trusts a proxy inside %s: %s', async (_name, trusted, proxyIp, shouldTrust) => {
+    const h = await harness({ trustedProxies: trusted })
+    const res = await h.app.inject({ method: 'GET', url: '/psono-connector/healthz', headers: { 'x-forwarded-for': '203.0.113.9' }, remoteAddress: proxyIp })
+    expect(res.statusCode).toBe(200)
+    // Trusted: the client address is taken from X-Forwarded-For, so no warning about an untrusted proxy.
+    expect(h.logs.some((l) => l.includes('proxy.untrusted'))).toBe(!shouldTrust)
+  })
+
   it('stays quiet and uses the client IP once the proxy is trusted', async () => {
     const h = await harness({ trustedProxies: ['10.0.0.10'] })
     await h.app.inject({ method: 'GET', url: '/psono-connector/healthz', headers: { 'x-forwarded-for': '203.0.113.9' }, remoteAddress: '10.0.0.10' })
