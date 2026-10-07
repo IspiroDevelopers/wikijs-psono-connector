@@ -28,6 +28,23 @@ if [ -f connector.env ]; then kept connector.env; else
   created connector.env
 fi
 
+# The sidecar runs as uid 1000 inside the container, and Docker mounts secret
+# files with the host's ownership and mode. Files owned by another user with mode
+# 600 would be unreadable there ("Permission denied" at start), so hand the two
+# files the sidecar reads to uid 1000 (keeping mode 600). .db-secret is read by
+# the PostgreSQL entrypoint as root and needs no change.
+if [ "$(id -u)" = 0 ]; then
+  chown 1000:1000 master.key database.url
+  echo "  owner    master.key, database.url -> 1000:1000 (the container user), mode 600"
+elif [ "$(id -u)" != 1000 ]; then
+  cat <<WARN
+
+  ⚠  The sidecar runs as uid 1000 inside the container but these files belong to
+     uid $(id -u). Run this once, or the sidecar will fail with "Permission denied":
+       sudo chown 1000:1000 master.key database.url
+WARN
+fi
+
 cat <<NEXT
 
 Next steps

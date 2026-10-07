@@ -11,6 +11,10 @@
 #   docker compose up -d
 #   docker compose exec psono-connector node main.cjs doctor
 #
+# The files master.key and database.url must be readable by uid 1000 (the
+# container user); init-secrets.sh takes care of that. The two `*_FILE` lines in
+# connector.env are paths inside the container: leave them as in the example.
+#
 # The sidecar must share a Docker network with Wiki.js so it can reach
 # http://wikijs:3000. Set WIKIJS_NETWORK to your Wiki.js project's network
 # (find it with `docker network ls`; for a project called "wikijs" it is

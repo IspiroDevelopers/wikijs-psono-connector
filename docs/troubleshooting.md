@@ -50,6 +50,14 @@ The message names the variable. Common ones:
 
 - `PSONO_SERVER_VERIFY_KEY is required` — run `print-server-pin`, verify, set it.
 - `… must use https` — all public URLs need `https://` (development only: `PSONO_CONNECTOR_ALLOW_HTTP=true`).
+- `…_FILE: cannot read "…" (EACCES)` — the secret file exists but the container user
+  (uid 1000) may not read it, typically because it is owned by `root` with mode 600.
+  On the host: `chown 1000:1000 master.key database.url` (keep mode 600), then
+  `docker compose up -d --force-recreate psono-connector`.
+- `…_FILE: cannot read "…" (ENOENT)` — the path is wrong. These variables hold paths
+  **inside the container**: keep `/run/secrets/master_key` and `/run/secrets/database_url`
+  from `connector.env.example` (Compose mounts your host files there); do not put the
+  host file name or a host path.
 - `PSONO_CONNECTOR_MASTER_KEY must be 32 random bytes` — generate with `openssl rand -hex 32`.
 - `Database not ready, retrying…` — normal for a few seconds while PostgreSQL starts; if it persists check `DATABASE_URL` and that the database container is up.
 - `Database schema is newer than this connector version` — you started an older image against a newer database; use the newer image.
