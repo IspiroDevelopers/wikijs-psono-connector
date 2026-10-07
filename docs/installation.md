@@ -85,22 +85,41 @@ the sidecar with a message naming the variable.
 
 ## Step 3 — Install the module into Wiki.js
 
+Wiki.js usually has **its own Docker Compose project, in another folder**. The
+easiest way is to write the module straight into that project, next to its compose
+file (replace `/path/to/wikijs` with the folder that contains Wiki.js's
+`docker-compose.yml`):
+
 ```sh
 docker compose run --rm --no-deps --user "$(id -u):$(id -g)" \
-  -v "$PWD/modules:/out" psono-connector node main.cjs install-module /out
+  -v "/path/to/wikijs/modules:/out" psono-connector node main.cjs install-module /out
 ```
 
-This writes `./modules/html-psono-connector`. In the compose file of **your
-Wiki.js**, add to the Wiki.js service's `volumes:` (use the real path to that
-folder):
+This creates `/path/to/wikijs/modules/html-psono-connector`. Now edit **Wiki.js's**
+compose file (not the connector's) and add, under the Wiki.js service's `volumes:`:
 
 ```yaml
-      - /path/to/wikijs-psono-connector/deploy/modules/html-psono-connector:/wiki/server/modules/rendering/html-psono-connector:ro
+      - ./modules/html-psono-connector:/wiki/server/modules/rendering/html-psono-connector:ro
 ```
 
-Recreate Wiki.js (`docker compose up -d wiki`); its log shows
-`Loaded 1 new renderers: [ OK ]`. The folder name **must** be
-`html-psono-connector`.
+(`./` is relative to the Wiki.js compose file. If you wrote the module somewhere
+else, use the **absolute host path** on the left instead.) Then recreate Wiki.js
+**from its own folder** — the `wiki` service does not exist in the connector's
+compose project:
+
+```sh
+cd /path/to/wikijs && docker compose up -d
+```
+
+Check that the module arrived (the container name may differ; see `docker ps`):
+
+```sh
+docker exec wikijs ls /wiki/server/modules/rendering/html-psono-connector
+docker compose logs wiki | grep -i "renderer"      # expect: Loaded 1 new renderers: [ OK ]
+```
+
+The folder name **must** be `html-psono-connector`. Nothing listed? See
+[troubleshooting](troubleshooting.md#wikijs-does-not-list-the-module).
 
 > Do not mount a directory that a build process deletes and recreates: a bind
 > mount keeps pointing at the deleted one.

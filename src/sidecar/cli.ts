@@ -63,8 +63,10 @@ export function runInstallModule(targetDir: string | undefined): void {
     const destination = installModule(targetDir)
     const version = readFileSync(join(destination, 'VERSION'), 'utf8').trim()
     console.log(`Installed module version ${version} to ${destination}`)
-    console.log('Mount it read-only into the Wiki.js container:')
-    console.log('  - ./modules/html-psono-connector:/wiki/server/modules/rendering/html-psono-connector:ro')
+    console.log('Next, in the compose file of your WIKI.JS project (not this one), add under the wiki service\'s volumes:')
+    console.log('  - /path/on/the/host/to/html-psono-connector:/wiki/server/modules/rendering/html-psono-connector:ro')
+    console.log('The left side is where that folder is on the HOST (a relative path is relative to the Wiki.js compose file).')
+    console.log('Then recreate Wiki.js: its log must show "Loaded 1 new renderers: [ OK ]".')
   } catch (err) {
     console.error(`Could not install the module: ${(err as Error).message}`)
     process.exit(1)

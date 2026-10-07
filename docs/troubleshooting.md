@@ -64,10 +64,23 @@ The message names the variable. Common ones:
 
 ## Wiki.js does not list the module
 
-The log must show `Loaded 1 new renderers: [ OK ]` after recreating the
-container. Otherwise check that the mounted folder is named exactly
-`html-psono-connector` and contains `definition.yml` and `renderer.js`, and that
-the mount path in the Wiki.js compose file really points at it.
+Administration → Rendering must show *Psono Connector* at the bottom of the list
+(hard-refresh the page), and the Wiki.js log must show
+`Loaded 1 new renderers: [ OK ]` after recreating its container. Check in order:
+
+1. **Is the mount in the right compose file?** It belongs in the compose file of
+   **Wiki.js**, under the Wiki.js service's `volumes:` — not in the connector's.
+   Running `docker compose up -d wiki` in the connector's folder fails with
+   *no such service*; recreate Wiki.js from **its own** folder.
+2. **Is the path right?** A relative path (`./modules/…`) is relative to the Wiki.js
+   compose file. If the module lives elsewhere, use the absolute host path.
+3. **Did it arrive inside the container?**
+   `docker exec <wikijs container> ls /wiki/server/modules/rendering/html-psono-connector`
+   must list `definition.yml` and `renderer.js`. If the folder is missing or empty the
+   mount line is absent or points at the wrong place.
+4. **Was the container recreated?** A mount added to the compose file only takes
+   effect after `docker compose up -d` (not `restart`).
+5. The folder name must be exactly `html-psono-connector`.
 
 ## Logs say a reverse proxy is "not trusted"
 
