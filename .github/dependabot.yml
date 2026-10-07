@@ -10,9 +10,20 @@ updates:
       - dependency-name: cheerio
       - dependency-name: dompurify
       - dependency-name: jsdom
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
   - package-ecosystem: docker
     directory: /
     schedule: { interval: weekly }
+    ignore:
+      # The sidecar is tested on Node 24 (LTS) only; move to a new major deliberately.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    groups:
+      github-actions:
+        patterns: ["*"]
