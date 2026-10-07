@@ -38,6 +38,16 @@ This creates `master.key`, `.db-secret`, `database.url` (mode 600) and
 `connector.env` from [`connector.env.example`](../deploy/connector.env.example).
 It never overwrites existing files. **Back up `master.key` offline.**
 
+> **File ownership.** The sidecar runs as user `node` (uid 1000) inside the container
+> and Docker mounts secret files with their host ownership. When the script runs as
+> `root` it hands `master.key` and `database.url` to uid 1000 itself; if you run it
+> as another user it tells you to run `sudo chown 1000:1000 master.key database.url`.
+> Without this the sidecar stops with `cannot read … (EACCES)`.
+>
+> **Do not change** `PSONO_CONNECTOR_MASTER_KEY_FILE` and `DATABASE_URL_FILE` in
+> `connector.env`: they are paths *inside the container* (`/run/secrets/…`), not the
+> names of your host files.
+
 Edit `connector.env`:
 
 | Setting | Value |

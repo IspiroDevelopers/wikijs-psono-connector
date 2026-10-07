@@ -24,6 +24,14 @@ optional).
   memory; the sidecar now fails at start (instead of at the first page view) if
   its build output is missing.
 
+### Fixed
+- Secret files owned by another user (typically `root`, mode 600) were unreadable by
+  the container user and stopped the sidecar with a bare "cannot read file". The
+  error now names the cause (`ENOENT`: the `*_FILE` value is a path inside the
+  container; `EACCES`: fix ownership with `chown 1000:1000`), and
+  `scripts/init-secrets.sh` assigns the two files the sidecar reads to uid 1000 when it
+  runs as root, or tells you what to run otherwise.
+
 ### Security
 - Addressed the first CodeQL findings: no file system access per unauthenticated
   request any more, and a fragile path construction in a test script.

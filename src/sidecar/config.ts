@@ -53,13 +53,35 @@ export class ConfigError extends Error {
 
 type Env = Record<string, string | undefined>
 
+/**
+ * Says why a `*_FILE` secret could not be read. The path is operator-supplied
+ * configuration, not a secret, but it is hidden if it looks like someone pasted
+ * the secret itself into the variable.
+ */
+function fileError(name: string, path: string, err: unknown): ConfigError {
+  const code = (err as NodeJS.ErrnoException).code ?? 'error'
+  const shown = /^[\w./-]{1,200}$/.test(path) && !/^[0-9a-fA-F]{32,}$/.test(path) ? `"${path}"` : '(value hidden)'
+  const base = `${name}_FILE: cannot read ${shown} (${code}).`
+  if (code === 'ENOENT') {
+    return new ConfigError(
+      `${base} This is a path INSIDE the container: keep the value from connector.env.example (for example /run/secrets/master_key); Docker Compose mounts your host file there.`,
+    )
+  }
+  if (code === 'EACCES' || code === 'EPERM') {
+    return new ConfigError(
+      `${base} The file exists but the container user (uid 1000) may not read it. On the host run: chown 1000:1000 <file> (keep mode 600), then recreate the container.`,
+    )
+  }
+  return new ConfigError(base)
+}
+
 function read(env: Env, name: string): string | undefined {
   const fileVar = env[`${name}_FILE`]
   if (fileVar) {
     try {
       return readFileSync(fileVar, 'utf8').trim()
-    } catch {
-      throw new ConfigError(`${name}_FILE: cannot read file`)
+    } catch (err) {
+      throw fileError(name, fileVar, err)
     }
   }
   const value = env[name]

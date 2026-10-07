@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from 'vitest'
+import { chmodSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { ConfigError, loadConfig, parseTrustedProxies } from '../../src/sidecar/config'
 
 describe('PSONO_CONNECTOR_TRUSTED_PROXIES', () => {
@@ -17,6 +20,48 @@ describe('PSONO_CONNECTOR_TRUSTED_PROXIES', () => {
   it.each(['nginx', '10.0.0.300', '10.0.0.0/33', '::1/129', '10.0.0.1/8/8', 'privatenet'])('rejects %j with a helpful message', (raw) => {
     expect(() => parseTrustedProxies(raw)).toThrow(ConfigError)
     expect(() => parseTrustedProxies(raw)).toThrow(/IP address, a CIDR range or one of loopback, linklocal, uniquelocal/)
+  })
+})
+
+describe('secret files (*_FILE)', () => {
+  const env = (file: string) => ({
+    PSONO_CONNECTOR_PUBLIC_URL: 'https://wiki.example.com',
+    PSONO_WEB_BASE_URL: 'https://psono.example.com',
+    PSONO_API_BASE_URL: 'https://psono.example.com/server',
+    WIKIJS_INTERNAL_URL: 'http://wikijs:3000',
+    DATABASE_URL: 'postgres://x@y/z',
+    PSONO_SERVER_VERIFY_KEY: 'cd'.repeat(32),
+    PSONO_CONNECTOR_MASTER_KEY_FILE: file,
+  })
+
+  it('reads the key from a file', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'psc-key-'))
+    const file = join(dir, 'master.key')
+    writeFileSync(file, 'ab'.repeat(32) + '\n')
+    expect(loadConfig(env(file)).masterKey.key).toHaveLength(32)
+  })
+
+  it('a missing file says the path is inside the container and what to keep', () => {
+    expect(() => loadConfig(env('master.key'))).toThrow(/cannot read "master\.key" \(ENOENT\).*INSIDE the container.*\/run\/secrets\/master_key/)
+  })
+
+  it.skipIf(process.getuid?.() === 0)('an unreadable file points at the ownership fix (container user uid 1000)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'psc-key-'))
+    const file = join(dir, 'master.key')
+    writeFileSync(file, 'ab'.repeat(32))
+    chmodSync(file, 0o000)
+    expect(() => loadConfig(env(file))).toThrow(/\(EACCES\).*uid 1000.*chown 1000:1000/)
+  })
+
+  it('never echoes a value that looks like the secret itself', () => {
+    const secret = 'ab'.repeat(32)
+    try {
+      loadConfig(env(secret))
+      throw new Error('should have thrown')
+    } catch (err) {
+      expect((err as Error).message).toContain('(value hidden)')
+      expect((err as Error).message).not.toContain(secret)
+    }
   })
 })
 
