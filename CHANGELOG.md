@@ -9,7 +9,7 @@ breaking changes, which are always listed).
 
 ## [Unreleased]
 
-## [0.1.0] — first public pre-release
+## [0.1.0] — 2026-10-07 — first public pre-release
 
 ### Added
 - Wiki.js 2.x rendering module that marks links to the configured Psono server
