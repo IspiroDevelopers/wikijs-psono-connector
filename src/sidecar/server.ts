@@ -13,7 +13,7 @@
 // Responses never carry secrets in headers or logs; see ADR-0003 / ADR-0008.
 
 import Fastify, { LogController, type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
-import { readFile } from 'node:fs/promises'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { PsonoWebBase } from '../shared/psono-reference'
 import type { CredentialStore } from './db/credential-store'
@@ -239,15 +239,14 @@ export async function buildServer(options: ServerOptions): Promise<FastifyInstan
   app.get(`${PREFIX}/source`, async (_req, reply) => reply.redirect(options.sourceUrl, 302))
 
   if (options.assetsDir) {
-    const assets = options.assetsDir
-    app.get(`${PREFIX}/client.js`, async (_req, reply) => {
-      const js = await readFile(join(assets, 'client.js'))
-      return reply.type('text/javascript; charset=utf-8').send(js)
-    })
+    // Read once at start: no file system access per (unauthenticated) request, and a
+    // missing build output fails the start instead of the first page view.
+    const clientJs = readFileSync(join(options.assetsDir, 'client.js'))
+    const settingsHtml = readFileSync(join(options.assetsDir, 'settings.html'))
+    app.get(`${PREFIX}/client.js`, async (_req, reply) => reply.type('text/javascript; charset=utf-8').send(clientJs))
     app.get(`${PREFIX}/settings`, async (_req, reply) => {
-      const html = await readFile(join(assets, 'settings.html'))
       reply.header('content-security-policy', SETTINGS_CSP)
-      return reply.type('text/html; charset=utf-8').send(html)
+      return reply.type('text/html; charset=utf-8').send(settingsHtml)
     })
   }
 

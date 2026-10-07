@@ -3,6 +3,9 @@
 // End-to-end tests of the sidecar HTTP API with in-memory storage and stubbed
 // Wiki.js / Psono backends (real crypto on both sides).
 import { randomBytes } from 'node:crypto'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { FastifyInstance } from 'fastify'
 import { afterEach, describe, expect, it } from 'vitest'
 import { normalizePsonoWebBase } from '../../src/shared/psono-reference'
@@ -51,7 +54,7 @@ afterEach(async () => {
   current = undefined
 })
 
-async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trustedProxies?: string[] } = {}): Promise<Harness> {
+async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trustedProxies?: string[]; assetsDir?: string } = {}): Promise<Harness> {
   const aliceKey = makeApiKey()
   const logs: string[] = []
   const state = { psonoCalls: 0 }
@@ -108,6 +111,7 @@ async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trust
     store,
     secrets,
     rateLimiter: new RateLimiter(),
+    ...(opts.assetsDir ? { assetsDir: opts.assetsDir } : {}),
     logStream: { write: (line) => void logs.push(line) },
   })
   current = {
@@ -584,6 +588,38 @@ describe('logging', () => {
       expect(all).not.toContain(needle)
     }
     expect(all).toContain('"event":"secret.reveal"')
+  })
+})
+
+describe('static assets', () => {
+  const assets = () => {
+    const dir = mkdtempSync(join(tmpdir(), 'psc-assets-'))
+    writeFileSync(join(dir, 'client.js'), '/* bundle */')
+    writeFileSync(join(dir, 'settings.html'), '<!doctype html><title>settings</title>')
+    return dir
+  }
+
+  it('serves the bundle and the settings page with their security headers', async () => {
+    const h = await harness({ assetsDir: assets() })
+    const js = await h.app.inject({ method: 'GET', url: '/psono-connector/client.js' })
+    expect(js.statusCode).toBe(200)
+    expect(js.headers['content-type']).toContain('text/javascript')
+    expect(js.headers['cache-control']).toBe('no-store, private')
+    const page = await h.app.inject({ method: 'GET', url: '/psono-connector/settings' })
+    expect(page.headers['content-security-policy']).toContain("script-src 'self'")
+    expect(page.body).toContain('<title>settings</title>')
+  })
+
+  it('serves from memory: removing the files after start changes nothing', async () => {
+    const dir = assets()
+    const h = await harness({ assetsDir: dir })
+    const { rmSync } = await import('node:fs')
+    rmSync(dir, { recursive: true, force: true })
+    expect((await h.app.inject({ method: 'GET', url: '/psono-connector/client.js' })).statusCode).toBe(200)
+  })
+
+  it('fails at start when the build output is missing', async () => {
+    await expect(harness({ assetsDir: join(tmpdir(), 'psc-does-not-exist') })).rejects.toThrow()
   })
 })
 

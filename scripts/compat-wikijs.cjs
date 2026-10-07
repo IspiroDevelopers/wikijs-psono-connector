@@ -19,7 +19,7 @@ const def = yaml.safeLoad(fs.readFileSync(path.join(moduleDir, 'definition.yml')
 // html-core loads children by kebab-case(key): the folder name must match.
 assert.strictEqual(_.kebabCase(def.key), 'html-psono-connector')
 assert.strictEqual(def.dependsOn, 'htmlCore')
-const renderer = require(path.join('../modules/rendering', _.kebabCase(def.key), 'renderer.js').replace('..', SERVER))
+const renderer = require(path.join(SERVER, 'modules/rendering', _.kebabCase(def.key), 'renderer.js'))
 assert.strictEqual(typeof renderer.init, 'function')
 
 const ID = '0b6c9a3e-1f2d-4c5b-8a7e-9d0c1b2a3f4e'
