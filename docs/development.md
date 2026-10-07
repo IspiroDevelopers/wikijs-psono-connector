@@ -45,6 +45,18 @@ security-relevant fix needs a test that fails without it.
    a Caddy/nginx giving Wiki.js and `/psono-connector/` one origin.
 4. `docker compose exec psono-connector node main.cjs doctor`.
 
+## Pinned test dependency: cheerio 1.0.0-rc.5
+
+`cheerio` is pinned to the exact version Wiki.js 2.5 ships, so the renderer's unit
+and integration tests run against the same API Wiki.js gives a rendering module
+(`scripts/compat-wikijs.sh` additionally runs the built module with the libraries
+inside real Wiki.js images). That old version depends on a `css-what` release with a
+published ReDoS advisory. It is a **development-only** dependency (the sidecar image
+and the Wiki.js module do not contain it), it only parses selectors written in this
+repository and test HTML, and `npm audit --omit=dev` is clean. Dependabot is
+therefore told to ignore it; if its alert shows in the Security tab, dismiss it as
+*risk is tolerable* with this explanation.
+
 ## Conventions
 
 - Every source file starts with `// SPDX-License-Identifier: AGPL-3.0-only`
