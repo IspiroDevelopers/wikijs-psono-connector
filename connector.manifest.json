@@ -1,6 +1,6 @@
 {
   "name": "wikijs-psono-connector",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "AGPL-3.0-only",
   "wikijs": {
     "supportedMajor": 2,

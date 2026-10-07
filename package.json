@@ -1,6 +1,6 @@
 {
   "name": "wikijs-psono-connector",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Show Psono credentials inside Wiki.js pages, resolved per user with their own read-only Psono API key.",
   "license": "AGPL-3.0-only",
