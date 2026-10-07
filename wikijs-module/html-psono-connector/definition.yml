@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+key: htmlPsonoConnector
+title: Psono Connector
+description: >-
+  ⚠️ HTTPS REQUIRED — Only use this connector when Wiki.js, the connector and Psono are all served over HTTPS
+  (Administration → General → Site URL must start with https://). Over plain HTTP, users' Psono API keys,
+  passwords, one-time codes and the Wiki.js session travel in clear text and can be intercepted.
+  ·
+  Marks links to your Psono server so signed-in users can view the credential with their own Psono API key.
+  Never embeds secrets in pages. Setup guide and security checklist: docs/installation.md and
+  docs/deployment/production-checklist.md in the wikijs-psono-connector repository.
+author: wikijs-psono-connector contributors
+icon: mdi-key-chain
+enabledDefault: false
+dependsOn: htmlCore
+props:
+  psonoWebBaseUrl:
+    type: String
+    title: Psono web client URL (https://…)
+    default: ''
+    hint: >-
+      Base URL of the Psono web client, e.g. https://psono.example.com — must be https://. Only links to exactly
+      this host are transformed. Leave empty to disable. Re-render all pages after changing it.
+    order: 1
+  allowHttp:
+    type: Boolean
+    title: ⚠️ Allow plain HTTP — INSECURE, development only
+    default: false
+    hint: >-
+      Never enable in production. With HTTP, API keys, passwords and one-time codes are sent unencrypted.
+    order: 2

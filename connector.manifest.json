@@ -1,0 +1,28 @@
+{
+  "name": "wikijs-psono-connector",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-only",
+  "wikijs": {
+    "supportedMajor": 2,
+    "minimumVersion": null,
+    "inspectedVersions": [
+      "2.5.316"
+    ],
+    "testedVersions": {
+      "rendererModule": [
+        "2.5.170",
+        "2.5.300",
+        "2.5.316"
+      ],
+      "endToEnd": [
+        "2.5.316"
+      ]
+    }
+  },
+  "psono": {
+    "apiMode": "sessionless-local-decryption",
+    "testedServerVersions": [
+      "7.4.5"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Actions are pinned to commit SHAs; Dependabot keeps them current.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Repository hygiene (headers, secrets, private strings)
+        run: sh scripts/check-repo.sh
+      - run: npm ci --ignore-scripts
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=low
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Compatibility with official Wiki.js images
+        run: >
+          sh scripts/compat-wikijs.sh
+          ghcr.io/requarks/wiki:2
+          ghcr.io/requarks/wiki:2.5.300
+          requarks/wiki:2.5.170
+      - name: Container image builds and starts its CLI
+        run: |
+          docker build -t wikijs-psono-connector:ci .
+          docker run --rm wikijs-psono-connector:ci node main.cjs --help

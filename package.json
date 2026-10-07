@@ -1,0 +1,51 @@
+{
+  "name": "wikijs-psono-connector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Show Psono credentials inside Wiki.js pages, resolved per user with their own read-only Psono API key.",
+  "license": "AGPL-3.0-only",
+  "author": "Wiki.js Psono Connector contributors",
+  "homepage": "https://github.com/IspiroDevelopers/wikijs-psono-connector#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IspiroDevelopers/wikijs-psono-connector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/IspiroDevelopers/wikijs-psono-connector/issues"
+  },
+  "keywords": [
+    "wikijs",
+    "wiki.js",
+    "psono",
+    "password-manager",
+    "credentials",
+    "totp"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:compat": "sh scripts/compat-wikijs.sh",
+    "check": "npm run typecheck && npm run test && npm run build && npm run check:repo",
+    "check:repo": "sh scripts/check-repo.sh"
+  },
+  "dependencies": {
+    "fastify": "5.12.5",
+    "pg": "8.23.1",
+    "tweetnacl": "1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "@types/pg": "8.23.1",
+    "cheerio": "1.0.0-rc.5",
+    "dompurify": "3.3.1",
+    "esbuild": "0.28.2",
+    "jsdom": "16.4.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}

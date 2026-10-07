@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Wiki.js Psono Connector — sidecar, its database and an OPTIONAL reverse proxy.
+#
+# ⚠️  HTTPS IS REQUIRED. Terminate TLS in your reverse proxy; all public URLs in
+#     connector.env must start with https://.
+#
+# Quick start (from this directory):
+#   sh ../scripts/init-secrets.sh .        # creates secrets + connector.env
+#   $EDITOR connector.env                  # URLs and PSONO_SERVER_VERIFY_KEY
+#   docker compose up -d
+#   docker compose exec psono-connector node main.cjs doctor
+#
+# The sidecar must share a Docker network with Wiki.js so it can reach
+# http://wikijs:3000. Set WIKIJS_NETWORK to your Wiki.js project's network
+# (find it with `docker network ls`; for a project called "wikijs" it is
+# usually "wikijs_default").
+
+services:
+  psono-connector:
+    image: ghcr.io/ispirodevelopers/wikijs-psono-connector:latest   # pin a version in production, e.g. :0.1.0
+    restart: unless-stopped
+    env_file: connector.env
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    secrets: [master_key, database_url]
+    depends_on: [psono-connector-db]
+    networks: [default, wikijs]
+    # Only when your reverse proxy runs on ANOTHER machine: publish on the LAN
+    # address of this host and firewall it to the proxy (docs/deployment/reverse-proxy.md, section A).
+    # ports: ["10.0.0.20:3100:3100"]
+
+  psono-connector-db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: psono_connector
+      POSTGRES_USER: psono_connector
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_secret
+    secrets: [db_secret]
+    volumes: [connector-db-data:/var/lib/postgresql/data]
+
+  # Optional: only if you have NO reverse proxy yet (docs/deployment/reverse-proxy.md, section F).
+  # Start with:  docker compose --profile proxy up -d
+  caddy:
+    profiles: [proxy]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    networks: [wikijs]
+
+networks:
+  wikijs:
+    external: true
+    name: ${WIKIJS_NETWORK:-wikijs_default}
+
+volumes:
+  connector-db-data:
+  caddy-data:
+
+secrets:
+  master_key: { file: ./master.key }
+  database_url: { file: ./database.url }
+  db_secret: { file: ./.db-secret }

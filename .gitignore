@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local configuration — never commit these.
+# Examples (*.example) are the only env-style files that belong in git.
+.env
+.env.*
+*.env
+!*.env.example
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+master.key
+database.url
+.db-secret
+secrets/
+**/secrets/
+
+# Local deployment data and test fixtures with real keys
+modules/
+connector-data/
+TEST_*
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.bak-*
+
+# Local-only publishing guard (see scripts/check-repo.sh); lists private strings
+.privacy-denylist
+
+# Logs, OS and editor files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+.claude/

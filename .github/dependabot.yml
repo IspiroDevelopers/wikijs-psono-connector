@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 10
+    ignore:
+      # Pinned on purpose to the versions shipped by Wiki.js 2.5 (test fidelity, dev only).
+      - dependency-name: cheerio
+      - dependency-name: dompurify
+      - dependency-name: jsdom
+  - package-ecosystem: docker
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

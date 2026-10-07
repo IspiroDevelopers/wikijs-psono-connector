@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copy to Caddyfile and set your domain. Caddy obtains the TLS certificate
+# automatically when the name is public and ports 80/443 are reachable.
+wiki.example.com {
+	handle /psono-connector/* {
+		reverse_proxy psono-connector:3100
+	}
+	handle {
+		reverse_proxy wikijs:3000
+	}
+	header Strict-Transport-Security "max-age=31536000"
+}
