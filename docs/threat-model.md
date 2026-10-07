@@ -45,7 +45,7 @@ Scope: the rendering module, the browser bundle and the sidecar, deployed as in
 | Reading back a stored API key | No such route exists; responses are tested not to contain key material (ADR-0006). |
 | Secrets in logs | No request/body/header logging; only event names, Wiki.js user id and a hashed secret reference. Tested. |
 | Caching by proxies/browsers | `Cache-Control: no-store, private` on every response. |
-| Brute force / amplification | Per-user rate limits; per-IP cap on failed authentications (each costs a Wiki.js GraphQL call). |
+| Brute force / amplification | Per-user rate limits (configurable, see configuration.md); per-IP cap on failed authentications; volumetric limits are the reverse proxy's job (reverse-proxy.md) (each costs a Wiki.js GraphQL call). |
 | Clickjacking of connector pages | `X-Frame-Options: DENY`, `frame-ancestors 'none'`. |
 
 ## Residual risks (read before deploying)

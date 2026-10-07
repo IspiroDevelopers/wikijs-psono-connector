@@ -42,6 +42,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, PSONO_CONNECTOR_DEVICE_TTL_DAYS: '31' })).toThrow(ConfigError)
   })
 
+  it('rate limit: 300 lookups per minute by default, adjustable within sane bounds', () => {
+    expect(loadConfig(base).resolvePerMinute).toBe(300)
+    expect(loadConfig({ ...base, PSONO_CONNECTOR_RESOLVE_PER_MINUTE: '1000' }).resolvePerMinute).toBe(1000)
+    for (const bad of ['5', '20000', 'many']) {
+      expect(() => loadConfig({ ...base, PSONO_CONNECTOR_RESOLVE_PER_MINUTE: bad })).toThrow(ConfigError)
+    }
+  })
+
   it('refuses http without the explicit development flag', () => {
     expect(() => loadConfig({ ...base, PSONO_CONNECTOR_PUBLIC_URL: 'http://wiki.example.com' })).toThrow(ConfigError)
     const dev = loadConfig({ ...base, PSONO_CONNECTOR_PUBLIC_URL: 'http://wiki.example.com', PSONO_CONNECTOR_ALLOW_HTTP: 'true' })

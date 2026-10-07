@@ -54,7 +54,7 @@ afterEach(async () => {
   current = undefined
 })
 
-async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trustedProxies?: string[]; assetsDir?: string } = {}): Promise<Harness> {
+async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trustedProxies?: string[]; assetsDir?: string; resolvePerMinute?: number } = {}): Promise<Harness> {
   const aliceKey = makeApiKey()
   const logs: string[] = []
   const state = { psonoCalls: 0 }
@@ -105,6 +105,7 @@ async function harness(opts: { enabled?: boolean; secureCookies?: boolean; trust
     passwordVisibleSeconds: 30,
     sourceUrl: 'https://github.com/example/wikijs-psono-connector',
     deviceTtlMs: 30 * 86_400_000,
+    resolvePerMinute: opts.resolvePerMinute ?? 300,
     secureCookies: opts.secureCookies ?? false,
     psonoWeb: normalizePsonoWebBase(PSONO_WEB),
     identity: new WikiIdentity({ wikijsInternalUrl: 'http://wikijs:3000', timeoutMs: 1000, fetch: wikiFetch }),
@@ -207,6 +208,26 @@ describe('authentication via Wiki.js', () => {
     const res = await call(h, 'GET', '/me/status', undefined, { cookie: c })
     expect(res.statusCode).toBe(401)
     expect(res.json()).toEqual({ status: 'unauthenticated' })
+  })
+})
+
+describe('per-user request limits', () => {
+  it('lets a page with well over 100 credentials load within the default limit', async () => {
+    const h = await harness()
+    await configureAlice(h)
+    const codes: number[] = []
+    for (let i = 0; i < 130; i++) codes.push((await call(h, 'POST', '/secrets/resolve', { url: link(ALLOWED) })).statusCode)
+    expect(codes.every((c) => c === 200)).toBe(true)
+  })
+
+  it('applies the configured limit per user, and one user does not use up another one’s budget', async () => {
+    const h = await harness({ resolvePerMinute: 5 })
+    await configureAlice(h)
+    const codes: number[] = []
+    for (let i = 0; i < 7; i++) codes.push((await call(h, 'POST', '/secrets/resolve', { url: link(ALLOWED) })).statusCode)
+    expect(codes).toEqual([200, 200, 200, 200, 200, 429, 429])
+    const bob = await call(h, 'GET', '/me/status', undefined, { cookie: cookie('bbb.bob.sig') })
+    expect(bob.statusCode).toBe(200)
   })
 })
 

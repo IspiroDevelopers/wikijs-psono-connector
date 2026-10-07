@@ -22,6 +22,7 @@ variable, never its content.
 | `PSONO_CONNECTOR_ENABLED` | | `true` | Global switch. When `false`, links stay plain links and Psono is never called. Takes effect on restart, no re-rendering needed. |
 | `PSONO_CONNECTOR_LOAD_MODE` | | `visible` | `visible`: load when a card scrolls into view. `click`: load only on click. |
 | `PSONO_CONNECTOR_PASSWORD_VISIBLE_SECONDS` | | `30` | Revealed passwords **and one-time codes** are hidden and wiped from the page after this many seconds. Both are hidden by default and fetched only when the user clicks *Show* (or *Copy*). |
+| `PSONO_CONNECTOR_RESOLVE_PER_MINUTE` | | `300` | Per-user limit (30–10000 requests per minute) for status and credential lookups. A page makes one lookup per credential card, so 300 covers several pages with dozens of credentials per minute. Password reveals (30/min), one-time codes (90/min) and key changes (10/min) have fixed limits that match human actions; failed logins are additionally capped per IP. Over the limit, cards show *Too many requests* with a *Retry* button. |
 | `PSONO_CONNECTOR_REQUEST_TIMEOUT_MS` | | `8000` | Timeout for calls to Psono and Wiki.js. |
 | `PSONO_CONNECTOR_TRUSTED_PROXIES` | | | Reverse proxies allowed to set `X-Forwarded-For`. See [below](#psono_connector_trusted_proxies). |
 | `PSONO_CONNECTOR_DEVICE_TTL_DAYS` | | `30` | Days a browser stays enrolled before the user must enter the API key again (1–30). Fixed from enrollment, not extended by use. |

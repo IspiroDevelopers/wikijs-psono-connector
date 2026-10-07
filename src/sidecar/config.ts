@@ -27,6 +27,8 @@ export interface Config {
   psonoWeb: PsonoWebBase
   /** Psono server API base without trailing slash, e.g. `https://psono.example.com/server`. */
   psonoApiBaseUrl: string
+  /** Per-user limit for status and credential lookups (one lookup per card on a page). */
+  resolvePerMinute: number
   /** Where users can get the source of this (possibly modified) program — AGPL-3.0 §13. */
   sourceUrl: string
   /** Pinned Ed25519 verify key of the Psono server (ADR-0009), lower-case hex. */
@@ -215,6 +217,7 @@ export function loadConfig(env: Env = process.env): Config {
     loadMode,
     passwordVisibleSeconds: int(env, 'PSONO_CONNECTOR_PASSWORD_VISIBLE_SECONDS', 30, 5, 600),
     deviceTtlMs: int(env, 'PSONO_CONNECTOR_DEVICE_TTL_DAYS', 30, 1, 30) * 24 * 60 * 60 * 1000,
+    resolvePerMinute: int(env, 'PSONO_CONNECTOR_RESOLVE_PER_MINUTE', 300, 30, 10_000),
     logLevel: read(env, 'PSONO_CONNECTOR_LOG_LEVEL') ?? 'info',
   }
 }
