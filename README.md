@@ -140,8 +140,9 @@ sh ../scripts/init-secrets.sh .
 $EDITOR connector.env
 docker compose up -d
 
-# 3. Install the Wiki.js module (read-only mount) and add one proxy rule
-docker compose run --rm --no-deps --user "$(id -u):$(id -g)" -v "$PWD/modules:/out" psono-connector node main.cjs install-module /out
+# 3. Install the Wiki.js module into Wiki.js's own project folder, then mount it
+#    read-only in *its* compose file (details in the installation guide), and add one proxy rule
+docker compose run --rm --no-deps --user "$(id -u):$(id -g)" -v "/path/to/wikijs/modules:/out" psono-connector node main.cjs install-module /out
 
 # 4. Check everything
 docker compose exec psono-connector node main.cjs doctor
