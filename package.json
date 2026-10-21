@@ -34,7 +34,7 @@
     "check:repo": "sh scripts/check-repo.sh"
   },
   "dependencies": {
-    "fastify": "5.12.5",
+    "fastify": "5.12.7",
     "pg": "8.23.1",
     "tweetnacl": "1.0.3"
   },
