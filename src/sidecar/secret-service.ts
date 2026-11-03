@@ -35,6 +35,7 @@ export type OtpPayload = { code: string; validUntil: string; periodSeconds: numb
 /** Metadata only: password and OTP code are fetched on explicit request (reveal / otp). */
 export type ResolveResult = Failure | { status: 'success'; secret: SecretSummary }
 export type RevealResult = Failure | { status: 'success'; password: string } | { status: 'no_password' }
+export type FieldResult = Failure | { status: 'success'; value: string } | { status: 'no_field' }
 export type OtpResult = Failure | { status: 'success'; otp: OtpPayload } | { status: 'no_otp' }
 
 export interface AuditLogger {
@@ -129,6 +130,17 @@ export class SecretService {
     if (password === undefined) return { status: 'no_password' }
     this.options.log.info({ event: 'secret.reveal', user: userId, ref: loaded.ref, outcome: 'success' }, 'Password revealed')
     return { status: 'success', password }
+  }
+
+  /** Value of a hidden custom field. The name must match, so a changed secret never returns another field. */
+  async field(caller: Caller, url: unknown, index: unknown, name: unknown, signal?: AbortSignal): Promise<FieldResult> {
+    const userId = caller.userId
+    const loaded = await this.load(caller, url, 'field', signal)
+    if ('status' in loaded) return loaded
+    const field = typeof index === 'number' ? loaded.mapped.hiddenFields?.get(index) : undefined
+    if (!field || field.name !== name) return { status: 'no_field' }
+    this.options.log.info({ event: 'secret.field', user: userId, ref: loaded.ref, outcome: 'success' }, 'Custom field revealed')
+    return { status: 'success', value: field.value }
   }
 
   async otp(caller: Caller, url: unknown, signal?: AbortSignal): Promise<OtpResult> {

@@ -25,12 +25,19 @@ export interface Otp {
   periodSeconds: number
 }
 
+export interface CustomFieldSummary {
+  name: string
+  value?: string
+  hiddenIndex?: number
+}
+
 export interface SecretSummary {
   type: string
   title: string
   url?: string
   username?: string
   notes?: string
+  customFields?: CustomFieldSummary[]
   hasPassword: boolean
   hasOtp: boolean
 }

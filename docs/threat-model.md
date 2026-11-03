@@ -9,7 +9,7 @@ Scope: the rendering module, the browser bundle and the sidecar, deployed as in
 
 | Asset | Where it lives |
 |---|---|
-| Psono secrets (password, TOTP seed, username, notes) | Psono. Decrypted transiently in sidecar memory; selected fields sent to the user's browser on request. TOTP seeds never leave the sidecar. |
+| Psono secrets (password, TOTP seed, username, notes, custom fields) | Psono. Decrypted transiently in sidecar memory; selected fields sent to the user's browser on request. TOTP seeds never leave the sidecar. |
 | Users' Psono API key material (`api_key_id`, `api_key_secret_key`) | Sidecar DB, one row per enrolled browser, AES-256-GCM under a key derived from the master key **and** a device secret that exists only in that browser's HttpOnly cookie. Expires after at most 30 days. |
 | Device secrets | Users' browsers only (HttpOnly cookie). Never stored server-side. |
 | Master key | Sidecar container (Docker secret / env). Never in the DB. |

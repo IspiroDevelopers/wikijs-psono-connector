@@ -18,6 +18,14 @@ interface Page {
 
 const SECRET_WITH_OTP = { type: 'website_password', title: 'T', username: 'u', hasPassword: true, hasOtp: true }
 const OTP_CODE = '482913'
+const HIDDEN_VALUE = 'hidden-field-value'
+const SECRET_WITH_FIELDS = {
+  type: 'website_password',
+  title: 'T',
+  hasPassword: false,
+  hasOtp: false,
+  customFields: [{ name: 'Environment', value: 'production' }, { name: 'PIN', hiddenIndex: 2 }],
+}
 
 const restore: Array<() => void> = []
 afterEach(() => {
@@ -68,6 +76,8 @@ async function loadPage(html: string, pluginEnabled = true, secret: object = { t
             passwordVisibleSeconds: 30,
             psonoWeb: normalizePsonoWebBase('https://psono.example.com'),
           }
+        : path === '/secrets/field'
+          ? { status: 'success', value: HIDDEN_VALUE }
         : path === '/secrets/otp'
           ? { status: 'success', otp: { code: OTP_CODE, validUntil: new Date(Date.now() + 20_000).toISOString(), periodSeconds: 30 } }
           : { status: 'success', secret }
@@ -186,5 +196,36 @@ describe('OTP show / hide', () => {
     const page = await loadPage(`<p>${marked(GOOD)}</p>`, true, SECRET_WITH_OTP)
     expect(page.calls.filter((c) => c.path === '/secrets/otp')).toHaveLength(0)
     expect(page.calls.filter((c) => c.path === '/secrets/reveal')).toHaveLength(0)
+  })
+})
+
+describe('custom fields', () => {
+  const fieldRow = (page: Page, label: string) => {
+    const dt = [...(page.roots[0]?.querySelectorAll('dt') ?? [])].find((d) => d.textContent === label)
+    const value = dt?.nextElementSibling as HTMLElement
+    const actions = value?.nextElementSibling as HTMLElement
+    return { value, buttons: [...(actions?.querySelectorAll('button') ?? [])] as HTMLButtonElement[] }
+  }
+  const settle = () => new Promise((r) => setTimeout(r, 20))
+
+  it('shows text fields and masks the others, without fetching them', async () => {
+    const page = await loadPage(`<p>${marked(GOOD)}</p>`, true, SECRET_WITH_FIELDS)
+    expect(fieldRow(page, 'Environment').value.textContent).toBe('production')
+    expect(fieldRow(page, 'PIN').value.textContent).not.toContain(HIDDEN_VALUE)
+    expect(page.roots[0]?.textContent).not.toContain(HIDDEN_VALUE)
+    expect(page.calls.some((c) => c.path === '/secrets/field')).toBe(false)
+  })
+
+  it('Show fetches the hidden field by position and name, Hide wipes it', async () => {
+    const page = await loadPage(`<p>${marked(GOOD)}</p>`, true, SECRET_WITH_FIELDS)
+    const { value, buttons } = fieldRow(page, 'PIN')
+    buttons[0]!.click()
+    await settle()
+    expect(value.textContent).toBe(HIDDEN_VALUE)
+    expect(page.calls.find((c) => c.path === '/secrets/field')?.body).toEqual({ url: GOOD, index: 2, name: 'PIN' })
+    buttons[0]!.click()
+    await settle()
+    expect(value.textContent).not.toContain(HIDDEN_VALUE)
+    expect(page.roots[0]?.textContent).not.toContain(HIDDEN_VALUE)
   })
 })

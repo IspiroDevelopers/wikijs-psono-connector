@@ -43,7 +43,9 @@ in the [threat model](threat-model.md). This page is the map.
    - decrypts Psono's answer locally (NaCl secretbox, two steps) and
    - returns **metadata only** through an allow-list (`secret-mapper.ts`).
 4. *Show* on the password → `POST /secrets/reveal`; *Show* on the OTP →
-   `POST /secrets/otp` (the sidecar computes the TOTP; the seed never leaves it).
+   `POST /secrets/otp` (the sidecar computes the TOTP; the seed never leaves it);
+   *Show* on a password-type custom field → `POST /secrets/field` (by position
+   and name; text-type custom fields are part of the metadata).
 
 Every API request is checked for same-origin, Wiki.js identity, per-user rate
 limit and a strict JSON schema. Errors map to one of a small set of statuses

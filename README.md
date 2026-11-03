@@ -75,7 +75,7 @@ In production everything runs over HTTPS.*
 | **Keys are bound to one browser and expire after at most 30 days.** The stored key is decryptable only with a secret kept in an `HttpOnly` cookie in that browser. | The Wiki.js 2.x session cookie can be read by scripts; if it is stolen, or the database leaks, that alone must not unlock anyone's key. |
 | **Saved keys can never be read back** — not even by their owner. | Nothing to leak through the UI, the API or a screenshot. Replacing or removing a key is always possible. |
 | **The Psono server is pinned** (its Ed25519 signing key). If it stops proving its identity the connector sends nothing and every card warns. | A replaced, hijacked or impersonated server must not receive requests or be trusted. |
-| **Hidden until asked, minimal data.** Passwords and one-time codes are fetched only on *Show*/*Copy*, wiped after 30 s; only an allow-list of fields leaves the sidecar; TOTP seeds never reach the browser; logs never contain secrets. | Reduce what is exposed, to whom, and for how long. |
+| **Hidden until asked, minimal data.** Passwords, one-time codes and password-type custom fields are fetched only on *Show*/*Copy*, wiped after 30 s; only an allow-list of fields leaves the sidecar; TOTP seeds never reach the browser; logs never contain secrets. | Reduce what is exposed, to whom, and for how long. |
 | **Strict link and request validation.** Exact scheme/host/port/path matching, same-origin (CSRF) guard, rate limits, no redirects followed, only the admin-configured Psono is ever contacted. | Block look-alike-domain phishing, SSRF and cross-site abuse. |
 
 **What it cannot protect against** (details and mitigations in the
