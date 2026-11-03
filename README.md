@@ -156,7 +156,7 @@ nginx on another machine — is in **[docs/installation.md](docs/installation.md
 
 | For | Read |
 |---|---|
-| Installing | [Installation](docs/installation.md) · [Reverse proxy](docs/deployment/reverse-proxy.md) · [Configuration](docs/configuration.md) |
+| Installing | [Installation](docs/installation.md) · [Upgrading](docs/upgrading.md) · [Reverse proxy](docs/deployment/reverse-proxy.md) · [Configuration](docs/configuration.md) |
 | Going to production | [Production checklist](docs/deployment/production-checklist.md) · [Threat model](docs/threat-model.md) |
 | Users of the wiki | [User guide](docs/user-guide.md) |
 | When something is wrong | [Troubleshooting](docs/troubleshooting.md) |
