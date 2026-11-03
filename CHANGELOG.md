@@ -9,6 +9,12 @@ breaking changes, which are always listed).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-11-03
+
+Drop-in upgrade from 0.1.0: no database migration, no configuration change
+required. **Copy the Wiki.js module again** (the browser bundle changed: custom
+fields) and recreate Wiki.js, as in the [installation guide](docs/installation.md#upgrading).
+
 ### Added
 - Custom fields of an entry (website password, application password, note, bookmark)
   are shown on the card, up to 50 per entry. Fields of type *text* are shown like
@@ -16,12 +22,6 @@ breaking changes, which are always listed).
   with the new `POST /secrets/field` (same per-user limit as the password reveal),
   wiped after the visibility window and never part of the initial load or the logs.
   No configuration or database change.
-
-## [0.1.1] — 2026-10-07
-
-Drop-in upgrade from 0.1.0: no database migration, no configuration change
-required. The Wiki.js module is functionally unchanged (copying it again is
-optional).
 
 ### Changed
 - Per-user limit for status and credential lookups is now configurable
