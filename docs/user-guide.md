@@ -43,6 +43,10 @@ You need an **API key** from Psono:
 
    *(Screenshots are from a development setup and a slightly earlier build; wording may differ a little.)*
 
+   Custom fields of the entry are listed below the code. Fields of type *text* are
+   visible like the notes, so keep secrets in fields of type *password*: those stay
+   hidden until you press *Show* or *Copy*.
+
 Good to know:
 
 - **Per browser.** The key works in the browser where you entered it and expires
