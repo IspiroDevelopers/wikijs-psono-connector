@@ -543,6 +543,25 @@ describe('secrets', () => {
     expect(res.json()).toEqual({ status: 'success', password: 'correct horse battery staple' })
   })
 
+  it('field reveals a hidden custom field only on explicit request and only with the matching name', async () => {
+    const h = await harness()
+    await configureAlice(h)
+    const summary = (await call(h, 'POST', '/secrets/resolve', { url: link(ALLOWED) })).json().secret
+    expect(summary.customFields).toEqual([
+      { name: 'Environment', value: 'production' },
+      { name: 'root', hiddenIndex: 1 },
+      { name: 'Legacy', value: 'no-type-means-text' },
+    ])
+    const ok = await call(h, 'POST', '/secrets/field', { url: link(ALLOWED), index: 1, name: 'root' })
+    expect(ok.json()).toEqual({ status: 'success', value: 'must-never-leak' })
+    expect(ok.headers['cache-control']).toBe('no-store, private')
+    // a text field, a wrong name and an unknown position never return a value
+    for (const [index, name] of [[0, 'Environment'], [1, 'other'], [9, 'root']] as const) {
+      expect((await call(h, 'POST', '/secrets/field', { url: link(ALLOWED), index, name })).json()).toEqual({ status: 'no_field' })
+    }
+    expect((await call(h, 'POST', '/secrets/field', { url: link(ALLOWED), index: -1, name: 'root' })).statusCode).toBe(400)
+  })
+
   it('otp returns a fresh code', async () => {
     const h = await harness()
     await configureAlice(h)
@@ -602,6 +621,7 @@ describe('logging', () => {
     await call(h, 'POST', '/secrets/resolve', { url: link(ALLOWED) })
     const otp = (await call(h, 'POST', '/secrets/otp', { url: link(ALLOWED) })).json().otp.code as string
     await call(h, 'POST', '/secrets/reveal', { url: link(ALLOWED) })
+    await call(h, 'POST', '/secrets/field', { url: link(ALLOWED), index: 1, name: 'root' })
     await call(h, 'POST', '/secrets/resolve', { url: link(DENIED) })
 
     const all = h.logs.join('\n')

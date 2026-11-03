@@ -17,3 +17,4 @@ change such a decision (copy the latest, take the next number).
 | [0007](0007-reverse-proxy-is-bring-your-own.md) | The reverse proxy is bring-your-own | Accepted |
 | [0008](0008-device-bound-keys.md) | API keys are bound to the browser and expire after 30 days | Accepted |
 | [0009](0009-psono-server-pinning.md) | The Psono server's identity is pinned | Accepted |
+| [0010](0010-custom-fields.md) | Custom fields are shown by kind, secret kinds only on request | Accepted |

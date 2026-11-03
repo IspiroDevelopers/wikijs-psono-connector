@@ -91,6 +91,17 @@ const urlBody = {
   properties: { url: { type: 'string', minLength: 1, maxLength: 2048 } },
 } as const
 
+const fieldBody = {
+  type: 'object',
+  required: ['url', 'index', 'name'],
+  additionalProperties: false,
+  properties: {
+    url: { type: 'string', minLength: 1, maxLength: 2048 },
+    index: { type: 'integer', minimum: 0, maximum: 1000 },
+    name: { type: 'string', minLength: 1, maxLength: 200 },
+  },
+} as const
+
 const credentialsBody = {
   type: 'object',
   required: ['apiKeyId', 'apiKeySecretKey'],
@@ -357,6 +368,15 @@ export async function buildServer(options: ServerOptions): Promise<FastifyInstan
       { schema: { body: urlBody }, preHandler: limited('reveal') },
       async (req, reply) => {
         const result = await options.secrets.reveal(caller(req), req.body.url, clientAbortSignal(reply))
+        return reply.code(statusCode(result.status)).send(result)
+      },
+    )
+
+    api.post<{ Body: { url: string; index: number; name: string } }>(
+      '/secrets/field',
+      { schema: { body: fieldBody }, preHandler: limited('reveal') },
+      async (req, reply) => {
+        const result = await options.secrets.field(caller(req), req.body.url, req.body.index, req.body.name, clientAbortSignal(reply))
         return reply.code(statusCode(result.status)).send(result)
       },
     )

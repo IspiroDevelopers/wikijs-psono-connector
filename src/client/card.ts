@@ -64,6 +64,8 @@ export class PsonoCard {
   // Bumped on every show/hide: timers from an earlier show become no-ops.
   private otpGeneration = 0
   private passwordGeneration = 0
+  // Hide functions of the revealed custom fields (wiped on dispose).
+  private readonly hiders = new Set<() => void>()
 
   /**
    * @param canonicalUrl Psono link rebuilt from the validated secret id. The
@@ -102,6 +104,8 @@ export class PsonoCard {
     this.timers.clear()
     this.hidePassword()
     this.hideOtp()
+    for (const hide of [...this.hiders]) hide()
+    this.hiders.clear()
     this.body.replaceChildren()
   }
 
@@ -259,6 +263,14 @@ export class PsonoCard {
       })
       row(t.otp, h('span', {}, this.otpValue, this.otpCountdown), [toggle, this.copyButton(() => this.otpForCopy(), `${t.copy} ${t.otp}`)])
     }
+    for (const field of secret.customFields ?? []) {
+      if (field.hiddenIndex === undefined) {
+        const text = field.value ?? ''
+        row(field.name, document.createTextNode(text), [this.copyButton(() => Promise.resolve(text), `${t.copy} ${field.name}`)])
+      } else {
+        this.hiddenFieldRow(row, field.name, field.hiddenIndex)
+      }
+    }
     if (secret.notes) {
       rows.push(h('dt', {}, t.notes), h('dd', { class: 'notes' }, secret.notes))
     }
@@ -267,6 +279,53 @@ export class PsonoCard {
       h('div', { class: 'head' }, keyIcon(), h('span', { class: 'title' }, secret.title || this.label || t.credential), this.manageKeyButton(), this.openInPsono()),
       h('dl', {}, ...rows),
     )
+  }
+
+  /** A custom field of the password kind: hidden by default, fetched only on Show or Copy. */
+  private hiddenFieldRow(row: (label: string, value: Node, actions?: Node[]) => void, name: string, index: number): void {
+    const { t } = this.ctx
+    const value = h('span', { 'aria-live': 'off' }, PASSWORD_MASK)
+    const toggle = h('button', { type: 'button', 'aria-pressed': 'false', 'aria-label': `${t.show} ${name}` }, t.show)
+    let text: Text | null = null
+    let generation = 0
+    const hide = () => {
+      generation++
+      if (text) text.data = ''
+      text = null
+      value.replaceChildren(PASSWORD_MASK)
+      toggle.textContent = t.show
+      toggle.setAttribute('aria-label', `${t.show} ${name}`)
+      toggle.setAttribute('aria-pressed', 'false')
+      this.hiders.delete(hide)
+    }
+    toggle.addEventListener('click', async () => {
+      if (text) {
+        hide()
+        return
+      }
+      toggle.disabled = true
+      const revealed = await this.revealField(index, name)
+      toggle.disabled = false
+      if (revealed === null) return
+      const current = ++generation
+      text = document.createTextNode(revealed)
+      value.replaceChildren(text)
+      toggle.textContent = t.hide
+      toggle.setAttribute('aria-label', `${t.hide} ${name}`)
+      toggle.setAttribute('aria-pressed', 'true')
+      this.hiders.add(hide)
+      void this.autoHideAfter(() => {
+        if (current === generation) hide()
+      })
+    })
+    row(name, value, [toggle, this.copyButton(() => this.revealField(index, name), `${t.copy} ${name}`)])
+  }
+
+  private async revealField(index: number, name: string): Promise<string | null> {
+    const result = await request<{ value: string }>('POST', '/secrets/field', { url: this.url, index, name }, this.controller.signal)
+    if (isSuccess(result)) return result.value
+    if (result.status !== 'aborted' && result.status !== 'no_field') this.renderFailure(result.status)
+    return null
   }
 
   private copyButton(getValue: () => Promise<string | null>, label: string): HTMLButtonElement {

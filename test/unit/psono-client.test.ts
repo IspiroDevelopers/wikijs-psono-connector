@@ -90,10 +90,16 @@ describe('mapSecret', () => {
       url: 'https://db.example.com/login',
       username: 'svc-test',
       notes: 'VPN required',
+      customFields: [
+        { name: 'Environment', value: 'production' },
+        { name: 'root', hiddenIndex: 1 },
+        { name: 'Legacy', value: 'no-type-means-text' },
+      ],
       hasPassword: true,
       hasOtp: true,
     })
     expect(JSON.stringify(mapped.summary)).not.toMatch(/must-never-leak|correct horse|JBSWY3DP/)
+    expect(mapped.hiddenFields?.get(1)).toEqual({ name: 'root', value: 'must-never-leak' })
     expect(mapped.password).toBe('correct horse battery staple')
     expect(mapped.totp?.period).toBe(30)
   })
@@ -140,5 +146,28 @@ describe('Psono 400 body variants (observed on release 7.4.5)', () => {
   it('a field validation error is not a permission denial', async () => {
     const { fn } = stubFetch(400, { secret_id: ['Must be a valid UUID.'] })
     expect(await kind(client(fn).readSecret(makeApiKey(), SECRET_ID))).toBe('error')
+  })
+})
+
+describe('mapSecret custom fields', () => {
+  const base = { website_password_title: 'T' }
+
+  it('treats every kind other than text as hidden, and keeps its value out of the summary', () => {
+    const mapped = mapSecret({ ...base, custom_fields: [{ name: 'pin', value: '1234', type: 'password' }, { name: 'x', value: 'y', type: 'something-new' }] })
+    expect(mapped.summary.customFields).toEqual([{ name: 'pin', hiddenIndex: 0 }, { name: 'x', hiddenIndex: 1 }])
+    expect(JSON.stringify(mapped.summary)).not.toMatch(/1234|"y"/)
+    expect([...(mapped.hiddenFields?.keys() ?? [])]).toEqual([0, 1])
+  })
+
+  it('ignores malformed and empty fields and caps how many are read', () => {
+    const many = Array.from({ length: 80 }, (_, i) => ({ name: `f${i}`, value: 'v', type: 'text' }))
+    const mapped = mapSecret({ ...base, custom_fields: [null, 'x', { name: '', value: 'v' }, { name: 'a', value: '' }, { name: 'b', value: 5 }, ...many] })
+    expect(mapped.summary.customFields).toHaveLength(50 - 5)
+    expect(mapSecret({ ...base, custom_fields: 'nope' }).summary.customFields).toBeUndefined()
+  })
+
+  it('does not read custom fields of types that never show them', () => {
+    const mapped = mapSecret({ totp_title: 'T', totp_code: 'JBSWY3DPEHPK3PXP', custom_fields: [{ name: 'a', value: 'b' }] })
+    expect(mapped.summary.customFields).toBeUndefined()
   })
 })

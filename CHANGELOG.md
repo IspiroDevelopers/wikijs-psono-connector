@@ -9,6 +9,14 @@ breaking changes, which are always listed).
 
 ## [Unreleased]
 
+### Added
+- Custom fields of an entry (website password, application password, note, bookmark)
+  are shown on the card, up to 50 per entry. Fields of type *text* are shown like
+  the notes; every other kind (*password*) is hidden until *Show*/*Copy*, fetched
+  with the new `POST /secrets/field` (same per-user limit as the password reveal),
+  wiped after the visibility window and never part of the initial load or the logs.
+  No configuration or database change.
+
 ## [0.1.1] — 2026-10-07
 
 Drop-in upgrade from 0.1.0: no database migration, no configuration change

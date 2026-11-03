@@ -43,7 +43,11 @@ export const WEBSITE_SECRET = {
   website_password_url_filter: 'db.example.com',
   website_password_auto_submit: false,
   website_password_allow_http: false,
-  custom_fields: [{ name: 'root', value: 'must-never-leak' }],
+  custom_fields: [
+    { name: 'Environment', value: 'production', type: 'text' },
+    { name: 'root', value: 'must-never-leak', type: 'password' },
+    { name: 'Legacy', value: 'no-type-means-text' },
+  ],
   tags: ['test'],
 }
 
