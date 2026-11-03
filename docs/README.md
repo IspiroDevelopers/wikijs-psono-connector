@@ -5,6 +5,7 @@
 | Document | Audience |
 |---|---|
 | [Installation](installation.md) | administrators — step by step |
+| [Upgrading](upgrading.md) | administrators — moving to a new version, e.g. 0.1.0 → 0.1.1 |
 | [Reverse proxy](deployment/reverse-proxy.md) | administrators — nginx, Caddy, Traefik, Apache |
 | [Configuration](configuration.md) | administrators — every setting |
 | [Production checklist](deployment/production-checklist.md) | administrators — before real use |

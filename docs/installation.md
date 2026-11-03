@@ -172,6 +172,8 @@ Psono*. What users do is described in the [user guide](user-guide.md).
 
 ## Upgrading
 
+Step by step, with checks and a way back: **[upgrading.md](upgrading.md)**. In short:
+
 - **Wiki.js**: upgrade as usual. The module mount and the script tag survive.
   If a Wiki.js release changes the rendering pipeline, the project's
   compatibility checks (`npm run test:compat`) catch it.
