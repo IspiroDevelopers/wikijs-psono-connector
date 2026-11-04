@@ -4,7 +4,7 @@
 # /opt/wikijs-psono-connector/wikijs-module for easy extraction (see docs/installation.md).
 
 # Pinned by digest (node 24.21.0); Dependabot proposes updates.
-FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f AS build
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS build
 WORKDIR /src
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
@@ -12,7 +12,7 @@ COPY . .
 RUN npm run typecheck && npm test && npm run build \
  && node scripts/third-party-notices.mjs > dist/THIRD_PARTY_NOTICES.txt
 
-FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85
 LABEL org.opencontainers.image.title="wikijs-psono-connector" \
       org.opencontainers.image.description="Psono credentials in Wiki.js pages, resolved per user with their own read-only Psono API key" \
       org.opencontainers.image.licenses="AGPL-3.0-only"
